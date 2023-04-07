@@ -1,0 +1,6 @@
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/steemit/steemutil v0.0.2 h1:X3c8UhuWIxZW+7Pc/W+t5T7EC1Yqr/LxGkL8Y3mlKxw=
+github.com/steemit/steemutil v0.0.2/go.mod h1:npwcTOrJCkfkJO9NcQwYX5EW7yslVgTPipVHA2YWiyg=
+github.com/steemit/steemutil v0.0.3 h1:IUubomo2pyFSxwrfHTd39R97Erx+VpZ12fVSwgveZeo=
+github.com/steemit/steemutil v0.0.3/go.mod h1:juhYy3fdFrfG8dXARzQcnTIk0bsDGNAro+9IZJRxa3s=
