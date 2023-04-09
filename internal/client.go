@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/steemit/steemgosdk/internal/consts"
 	"github.com/steemit/steemutil/jsonrpc2"
 	"github.com/steemit/steemutil/protocol/api"
+	"github.com/steemit/steemutil/wif"
 
 	"github.com/pkg/errors"
 )
@@ -14,6 +16,7 @@ import (
 type Client struct {
 	Url      string
 	MaxRetry int
+	Wifs     map[string]*wif.PrivateKey
 }
 
 type WrapBlock struct {
@@ -127,4 +130,36 @@ func (c *Client) GetBlocks(from, to uint) (blocks []*WrapBlock, err error) {
 		blocks = append(blocks, blocksMap[i])
 	}
 	return
+}
+
+func (c *Client) ImportWif(keyType string, privWif string) (err error) {
+	if !checkKeyType(keyType) {
+		return errors.New("unexpected keyType when import wif")
+	}
+	priv := &wif.PrivateKey{}
+	err = priv.FromWif(privWif)
+	if err != nil {
+		return
+	}
+	if len(c.Wifs) == 0 {
+		c.Wifs = make(map[string]*wif.PrivateKey, 0)
+	}
+	c.Wifs[keyType] = priv
+	return
+}
+
+func checkKeyType(keyType string) (r bool) {
+	if keyType == consts.ACTIVE_KEY {
+		return true
+	}
+	if keyType == consts.POSTING_KEY {
+		return true
+	}
+	if keyType == consts.OWNER_KEY {
+		return true
+	}
+	if keyType == consts.MEMO_KEY {
+		return true
+	}
+	return false
 }
