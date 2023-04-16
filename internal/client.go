@@ -7,7 +7,9 @@ import (
 
 	"github.com/steemit/steemgosdk/internal/consts"
 	"github.com/steemit/steemutil/jsonrpc2"
+	"github.com/steemit/steemutil/protocol"
 	"github.com/steemit/steemutil/protocol/api"
+	"github.com/steemit/steemutil/transaction"
 	"github.com/steemit/steemutil/wif"
 
 	"github.com/pkg/errors"
@@ -78,6 +80,27 @@ func (c *Client) GetBlock(blockNum uint) (block *api.Block, err error) {
 	return
 }
 
+func (c *Client) BroadcastSync(params []any) (resultJson []byte, err error) {
+	rpc := c.GetRpcClient()
+	err = rpc.BuildSendData(
+		"condenser_api.broadcast_transaction_synchronous",
+		params,
+	)
+	if err != nil {
+		return
+	}
+	fmt.Printf("test send data: %+v", string(rpc.SendData))
+	rpcResponse, err := rpc.Send()
+	if err != nil {
+		return
+	}
+	if rpcResponse.Error != nil {
+		return resultJson, errors.Errorf("failed to broadcast:%v", rpcResponse.Error)
+	}
+	resultJson, err = json.Marshal(rpcResponse.Result)
+	return
+}
+
 func (c *Client) wrapGetBlock(blockNum uint, ch chan<- *WrapBlock) {
 	var (
 		err   error
@@ -145,6 +168,62 @@ func (c *Client) ImportWif(keyType string, privWif string) (err error) {
 		c.Wifs = make(map[string]*wif.PrivateKey, 0)
 	}
 	c.Wifs[keyType] = priv
+	return
+}
+
+func (c *Client) GetTransactionHex(tx *transaction.SignedTransaction) (result any, err error) {
+	rpc := c.GetRpcClient()
+	err = rpc.BuildSendData(
+		"condenser_api.get_transaction_hex",
+		[]any{tx.Transaction},
+	)
+	if err != nil {
+		return
+	}
+	rpcResponse, err := rpc.Send()
+	if err != nil {
+		return
+	}
+	if rpcResponse.Error != nil {
+		return result, errors.Errorf("failed to GetTransactionHex:%v", rpcResponse.Error)
+	}
+	result = rpcResponse.Result
+	return
+}
+
+func (c *Client) BroadcastRawOps(ops []protocol.Operation, priv *wif.PrivateKey) (err error) {
+	if len(ops) == 0 {
+		return errors.Errorf("no operations submit")
+	}
+
+	dgp, err := c.GetDynamicGlobalProperties()
+	if err != nil {
+		return err
+	}
+
+	// Prepare the transaction.
+	refBlockPrefix, err := transaction.RefBlockPrefix(dgp.HeadBlockId)
+	if err != nil {
+		return err
+	}
+
+	tx := transaction.NewSignedTransaction(&transaction.Transaction{
+		RefBlockNum:    transaction.RefBlockNum(dgp.HeadBlockNumber),
+		RefBlockPrefix: refBlockPrefix,
+	})
+
+	for _, op := range ops {
+		tx.PushOperation(op)
+	}
+
+	err = tx.Sign([]*wif.PrivateKey{priv}, transaction.SteemChain)
+	if err != nil {
+		return err
+	}
+	if len(tx.Signatures) != 1 {
+		return errors.Errorf("expected signatures not appended to the transaction")
+	}
+	_, err = c.BroadcastSync([]any{tx})
 	return
 }
 
