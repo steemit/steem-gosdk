@@ -1,7 +1,11 @@
 package main
 
-func GetClient(url string) (client *Client) {
-	client = &Client{
+import (
+	"github.com/steemit/steemgosdk/client"
+)
+
+func GetClient(url string) (c *client.Client) {
+	c = &client.Client{
 		Url:      url,
 		MaxRetry: 5,
 	}
