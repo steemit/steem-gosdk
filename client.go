@@ -1,11 +1,11 @@
-package internal
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/steemit/steemgosdk/internal/consts"
+	"github.com/steemit/steemgosdk/consts"
 	"github.com/steemit/steemutil/jsonrpc2"
 	"github.com/steemit/steemutil/protocol"
 	"github.com/steemit/steemutil/protocol/api"
@@ -16,9 +16,10 @@ import (
 )
 
 type Client struct {
-	Url      string
-	MaxRetry int
-	Wifs     map[string]*wif.PrivateKey
+	Url         string
+	MaxRetry    int
+	AccountName string
+	Wifs        map[string]*wif.PrivateKey
 }
 
 type WrapBlock struct {
