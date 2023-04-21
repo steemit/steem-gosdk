@@ -45,7 +45,7 @@ func (c *Client) GetDynamicGlobalProperties() (dgp *api.DynamicGlobalProperties,
 		return
 	}
 	if rpcResponse.Error != nil {
-		return dgp, errors.Errorf("failed to GetDynamicGlobalProperties:%v", rpcResponse.Error)
+		return dgp, errors.Errorf("failed to GetDynamicGlobalProperties:%v\n", rpcResponse.Error)
 	}
 	tmp, err := json.Marshal(rpcResponse.Result)
 	if err != nil {
@@ -70,7 +70,7 @@ func (c *Client) GetBlock(blockNum uint) (block *api.Block, err error) {
 		return
 	}
 	if rpcResponse.Error != nil {
-		return block, errors.Errorf("failed to GetBlock:%v", rpcResponse.Error)
+		return block, errors.Errorf("failed to GetBlock:%v\n", rpcResponse.Error)
 	}
 	tmp, err := json.Marshal(rpcResponse.Result)
 	if err != nil {
@@ -90,13 +90,13 @@ func (c *Client) BroadcastSync(params []any) (resultJson []byte, err error) {
 	if err != nil {
 		return
 	}
-	fmt.Printf("test send data: %+v", string(rpc.SendData))
+	// fmt.Printf("test send data: %+v\n", string(rpc.SendData))
 	rpcResponse, err := rpc.Send()
 	if err != nil {
 		return
 	}
 	if rpcResponse.Error != nil {
-		return resultJson, errors.Errorf("failed to broadcast:%v", rpcResponse.Error)
+		return resultJson, errors.Errorf("failed to broadcast:%v\n", rpcResponse.Error)
 	}
 	resultJson, err = json.Marshal(rpcResponse.Result)
 	return
@@ -113,11 +113,11 @@ func (c *Client) wrapGetBlock(blockNum uint, ch chan<- *WrapBlock) {
 		if err == nil {
 			break
 		}
-		fmt.Printf("retry get block {%+v} after 1 second.", blockNum)
+		fmt.Printf("Retry get block {%+v} after 1 second.\n", blockNum)
 		time.Sleep(time.Second)
 	}
 	if err != nil {
-		fmt.Printf("wrapGetBlock err: %+v", err)
+		fmt.Printf("wrapGetBlock err: %+v\n", err)
 		ch <- nil
 		return
 	}
@@ -131,7 +131,7 @@ func (c *Client) wrapGetBlock(blockNum uint, ch chan<- *WrapBlock) {
 func (c *Client) GetBlocks(from, to uint) (blocks []*WrapBlock, err error) {
 	// check params
 	if from >= to {
-		return blocks, errors.Errorf("unexpected params {from: %v}, {to: %v}", from, to)
+		return blocks, errors.Errorf("unexpected params {from: %v}, {to: %v}\n", from, to)
 	}
 	// init
 	ch := make(chan *WrapBlock, to-from)
@@ -146,7 +146,7 @@ func (c *Client) GetBlocks(from, to uint) (blocks []*WrapBlock, err error) {
 		result := <-ch
 		blocksMap[result.BlockNum] = result
 		if blocksMap[result.BlockNum] == nil {
-			return blocks, errors.Errorf("get block {%v} error", result.BlockNum)
+			return blocks, errors.Errorf("get block {%v} error\n", result.BlockNum)
 		}
 	}
 	// sort result
@@ -158,7 +158,7 @@ func (c *Client) GetBlocks(from, to uint) (blocks []*WrapBlock, err error) {
 
 func (c *Client) ImportWif(keyType string, privWif string) (err error) {
 	if !checkKeyType(keyType) {
-		return errors.New("unexpected keyType when import wif")
+		return errors.New("unexpected keyType when import wif\n")
 	}
 	priv := &wif.PrivateKey{}
 	err = priv.FromWif(privWif)
@@ -186,7 +186,7 @@ func (c *Client) GetTransactionHex(tx *transaction.SignedTransaction) (result an
 		return
 	}
 	if rpcResponse.Error != nil {
-		return result, errors.Errorf("failed to GetTransactionHex:%v", rpcResponse.Error)
+		return result, errors.Errorf("failed to GetTransactionHex:%v\n", rpcResponse.Error)
 	}
 	result = rpcResponse.Result
 	return
@@ -194,7 +194,7 @@ func (c *Client) GetTransactionHex(tx *transaction.SignedTransaction) (result an
 
 func (c *Client) BroadcastRawOps(ops []protocol.Operation, priv *wif.PrivateKey) (err error) {
 	if len(ops) == 0 {
-		return errors.Errorf("no operations submit")
+		return errors.Errorf("no operations submit\n")
 	}
 
 	dgp, err := c.GetDynamicGlobalProperties()
@@ -222,7 +222,7 @@ func (c *Client) BroadcastRawOps(ops []protocol.Operation, priv *wif.PrivateKey)
 		return err
 	}
 	if len(tx.Signatures) != 1 {
-		return errors.Errorf("expected signatures not appended to the transaction")
+		return errors.Errorf("expected signatures not appended to the transaction\n")
 	}
 	_, err = c.BroadcastSync([]any{tx})
 	return
